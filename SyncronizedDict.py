@@ -12,11 +12,14 @@ class SyncronizedDict() :
 
 	# DatapathId: Id of the datapath the host is connected to
 	# PortID: Id of the port (on the datapath) the host is connected to
-	def get(self, key):
-		# print(f'getting {key}')
+	def get(self, key, display = False):
+		#if (display):
+		#	print(f'getting {key}')
 		toReturn = (False, ())
 		self._lock.acquire()
 
+		#if (display):
+		#	print(self._dict)
 		if (key in self._dict):
 			toReturn = (True, self._dict[key].copy())
 
