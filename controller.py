@@ -147,6 +147,20 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 			# Pushing rule for multicast discarding
 			ok, datapath,ofproto,parser = self.get_datapath(src)
 			if ok:
+				match = parser.OFPMatch(
+					eth_dst = mac.BROADCAST_STR)
+				inst = [
+					parser.OFPInstructionGotoTable(1)
+				]
+				mod = parser.OFPFlowMod(
+					datapath=datapath,
+					table_id=0,
+					priority=1,
+					match=match,
+					instructions=inst
+				)
+				datapath.send_msg(mod)
+
 				# print(f'Rejecting broadcast on {src}@{link.src.port_no}')
 				match = parser.OFPMatch(
 					eth_dst = mac.BROADCAST_STR,
@@ -196,12 +210,16 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 		dst_mac = eth_in.dst
 		src_ip = ipv4_in.src
 		dst_ip = ipv4_in.dst
-		src_port = tcp_in.src_port
-		dst_port = tcp_in.dst_port
+		print('!!!!!')
+		print(tcp_in)
+		print('!!!!!')
+		tcp_src_port = tcp_in.src_port
+		tcp_dst_port = tcp_in.dst_port
 
-		connection_id = self.get_connection_id(src_ip, dst_ip, src_port, dst_port)
+		connection_id = self.get_connection_id(src_ip, dst_ip, tcp_src_port, tcp_dst_port)
 		ok, _ = self.connections.get(connection_id)
 		if (not ok):
+			print('-----')
 			print(f'Got new Connection {connection_id} to {dst_mac} ', end='')
 
 			ok, dp_data = self.host_dp_assoc.get(dst_mac)
@@ -221,7 +239,7 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 				for item in path:
 					dp_out_port = hops[item]["port"]
 					print(f'	{hex(item)}@{dp_out_port}', end='')
-
+					print(f'Porte {tcp_src_port} {tcp_dst_port}')
 					# Pushing rule to switch
 					ok, tmp_datapath,tmp_ofproto,tmp_parser = self.get_datapath(item)
 					if ok:
@@ -230,8 +248,8 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 							ip_proto=inet.IPPROTO_TCP,
 							ipv4_src=src_ip,
 							ipv4_dst=dst_ip,
-							# tcp_src=src_port,
-							# tcp_dst=dst_port,
+							tcp_src=tcp_src_port,
+							tcp_dst=tcp_dst_port,
 						)
 						inst = [
 							tmp_parser.OFPInstructionActions(
@@ -246,7 +264,7 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 							priority=20,
 							match=match,
 							instructions=inst,
-							idle_timeout=1
+							idle_timeout=10
 						)
 						tmp_datapath.send_msg(mod)
 						print('[OK]')
@@ -256,6 +274,8 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 				self.connections.set(connection_id, hops = hops)
 			else:
 				print(f'[KO] (datapath not found)')
+
+			print('-----')
 		else:
 			pass
 			#print(f'Existing Connection')
@@ -278,6 +298,7 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 				datapath.send_msg(out)
 				print(f' OK')
 			else:
+				print(hops_data)
 				print(f'Datapath {datapath.id} not found in hops')
 		else:
 			print('Connection not found')
@@ -302,7 +323,7 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 
 	# Return tuple (ok, datapath, ofproto, parser)
 	def get_datapath(self, dpid):
-		(ok, dp_data) = self.datapaths.get(dpid)
+		(ok, dp_data) = self.datapaths.get(dpid, True)
 		if not ok:
 			return (False, None, None, None)
 
@@ -475,6 +496,21 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 		# 	instructions=inst
 		# )
 		# datapath.send_msg(mod)
+	
+		#T0: Dropping multicast till topology discovery
+		match = parser.OFPMatch(
+					eth_dst = mac.BROADCAST_STR)
+		inst = [
+			parser.OFPInstructionActions(ofproto.OFPIT_CLEAR_ACTIONS, [])
+		]
+		mod = parser.OFPFlowMod(
+			datapath=datapath,
+			table_id=0,
+			priority=1,
+			match=match,
+			instructions=inst
+		)
+		datapath.send_msg(mod)
 
 		# T0: Routing remaining traffic to the next table
 		match = parser.OFPMatch()
