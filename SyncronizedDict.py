@@ -1,8 +1,6 @@
 
 from threading import RLock
 class SyncronizedDict() :
-	# _lock = RLock()
-	# _dict = {}
 	def __init__(self) :
 		self._lock = RLock()
 		self._dict = {}
@@ -13,13 +11,10 @@ class SyncronizedDict() :
 	# DatapathId: Id of the datapath the host is connected to
 	# PortID: Id of the port (on the datapath) the host is connected to
 	def get(self, key, display = False):
-		#if (display):
-		#	print(f'getting {key}')
+
 		toReturn = (False, ())
 		self._lock.acquire()
 
-		#if (display):
-		#	print(self._dict)
 		if (key in self._dict):
 			toReturn = (True, self._dict[key].copy())
 
@@ -27,30 +22,22 @@ class SyncronizedDict() :
 		return toReturn
 
 	def set(self, key, **data):
-		# print(f'adding {key} {data}')
+
 		self._lock.acquire()
 
 		self._dict[key] = data.copy()
 
 		self._lock.release()
 
-	# def list(self):
-	# 	toReturn = {}
-	# 	self._lock.acquire()
-	# 	toReturn = self._dict.copy()
-	# 	self._lock.release()
-	# 	return toReturn
-
 	def list(self):
 		toReturn = []
 		self._lock.acquire()
-		# print("START LIST")
+
 		for key in self._dict:
 			valid, data = self.get(key)
 			if (valid):
-				# print(data)
 				toReturn.append((key, data))
-		# print("END LIST")
+				
 		self._lock.release()
-		# print(toReturn)
+
 		return toReturn
