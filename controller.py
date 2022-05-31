@@ -54,9 +54,7 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 		super(WeightedLoadBalancer, self).__init__(*args, **kwargs)
 
 		# Weighted network map
-		# self.net = nx.DiGraph()
 
-		# self.net_mutex = Lock()
 		self.host_dp_assoc = SyncronizedDict()
 		self.datapaths = SyncronizedDict()
 		self.portstats = SyncronizedDict()
@@ -64,46 +62,13 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 		self.graph = SyncronizedWeightedGraph()
 		
 		# thread che lancia periodicamente le richieste
-		# self.monitor_thread = hub.spawn(self._monitor_thread_f)
+
 		self.net_mapper_thread = hub.spawn(self._bgworker_thread_f)
 		self.connections = SyncronizedDict()
 	def dump(self, obj):
 		attrs = vars(obj)
 		print(f', '.join("%s: %s\n" % item for item in attrs.items()))
 
-	# def _monitor_thread_f(self):
-	# 	while True:
-	# 		print('\nAsking stats:')
-	# 		for dpid, _ in self.datapaths.list():
-	# 			ok, datapath,ofproto,parser = self.get_datapath(dpid)
-	# 			if ok:
-	# 				# req = parser.OFPFlowStatsRequest(datapath)
-	# 				# datapath.send_msg(req)
-	# 				req = parser.OFPPortStatsRequest(datapath, 0, ofproto.OFPP_ANY)
-	# 				datapath.send_msg(req)
-	# 		hub.sleep(self.STATS_THREAD_INTERVAL)
-
-	# def net_update_weight(self, datapath, port, updateId, totalLoad):
-
-
-
-
-	# 	# Computing src and desc id
-	# 	src = datapath.id
-	# 	dst = self.datapaths[src][port]
-	# 	assert dst != None
-
-	# 	self.net_mutex.acquire()
-	# 	link = self.net[src][dst]
-	# 	assert link != None
-
-	# 	interval = updateId - link.updateId
-	# 	if (interval < 0):
-	# 		return  #Old Update
-		
-	# 	link.weight = totalLoad - link.totalLoad
-	# 	link.totalLoad = totalLoad
-	# 	self.net_mutex.release()
 
 	def add_datapath(self, dp):
 		(ok, _) = self.datapaths.get(dp.id)
@@ -125,14 +90,10 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 		for dpid, _ in self.datapaths.list():
 			ok, datapath,ofproto,parser = self.get_datapath(dpid)
 			if ok:
-				# print(f'  {dpid}')
-				# req = parser.OFPFlowStatsRequest(datapath)
-				# datapath.send_msg(req)
 				req = parser.OFPPortStatsRequest(datapath, 0, ofproto.OFPP_ANY)
 				datapath.send_msg(req)
 
 		for link in get_all_link(self):
-			# print(link)
 			src = link.src.dpid
 			dst = link.dst.dpid
 
@@ -140,7 +101,6 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 			self.graph.add_arc(src, dst, link.src.port_no )
 			ok, stats_data = self.portstats.get((link.src.dpid, link.src.port_no))
 			if ok:
-				# print(stats_data['data'])
 				self.graph.update_weight(src, dst, stats_data['data'].tx_bytes, stats_data['data'].duration_sec)
 			else:
 				print(f'Stats {link.src.dpid}:{link.src.port_no} not found')
@@ -161,7 +121,6 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 				)
 				datapath.send_msg(mod)
 
-				# print(f'Rejecting broadcast on {src}@{link.src.port_no}')
 				match = parser.OFPMatch(
 					eth_dst = mac.BROADCAST_STR,
 					in_port = link.src.port_no)
@@ -200,13 +159,8 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 		ipv4_in = pkt_in.get_protocol(ipv4.ipv4)
 		tcp_in = pkt_in.get_protocol(tcp.tcp)
 		
-		# print("PKT DEBUG")
-		# print(eth_in)
-		# print(ipv4_in)
-		# print(tcp_in)
-		# print("END DEBUG")
 
-		#print(f'---\nBEGIN handling TCP Connection\n---')
+		# BEGIN handling TCP Connection
 		dst_mac = eth_in.dst
 		src_ip = ipv4_in.src
 		dst_ip = ipv4_in.dst
@@ -278,7 +232,6 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 			print('-----')
 		else:
 			pass
-			#print(f'Existing Connection')
 
 		# In any case we need to route this packet via the controller
 		ok, hops_data = self.connections.get(connection_id)
@@ -303,7 +256,7 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 		else:
 			print('Connection not found')
 
-		#print(f'---\nEND handling TCP Connection\n---')
+		# END handling TCP Connection
 	def _handle_pkt_ipv6(self, msg):
 		# Discarding
 		return
@@ -348,7 +301,7 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 			actions=[parser.OFPActionOutput(port)],
 			data=data
 		)
-		# print(f'Sending pkt to {dst} via {dpid}@{port}')
+		
 		datapath.send_msg(out)
 
 	def send_pkt(self, dst, data):
@@ -374,7 +327,6 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 			
 	@set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
 	def _packet_in_handler(self, ev):
-		# print(f'MAIN DISPATCHER')
 		msg = ev.msg
 		datapath = msg.datapath
 		ofproto = datapath.ofproto
@@ -387,8 +339,6 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 
 		# Detecting connected client
 		self.add_node(eth_parsed.src, datapath.id, in_port)
-
-		# print(eth.dst)
 
 		# Discarding LLDP (already handled by ryu topology)
 		if eth_parsed.ethertype == ether_types.ETH_TYPE_LLDP:
@@ -412,10 +362,6 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 		else:
 			print(f'Unicast from {eth_parsed.src} to {eth_parsed.dst}')
 			self.send_pkt(eth_parsed.dst, msg.data)
-			# dst = eth.dst
-			# ok, dp = self.host_dp_assoc.get(dst)
-			# if  ok :
-			# 	self.send_pkt(msg.data, dp['dpid'], dp['port'])
 
 		return
 
@@ -451,51 +397,23 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 		else:
 			print(f'Unrecognized Packer')
 			self.dump(pkt)
-		# print(f'END MAIN DISPATCHER')
 
 	@set_ev_cls(ofp_event.EventOFPErrorMsg)
 	def error_msg_handler(self, ev):
 		msg = ev.msg
 
-		# print(f'!!!OFPErrorMsg!!! {msg.data.decode("ascii")}')
 		print(msg)
 		
 
 	@set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
 	def switch_features_handler(self, ev):
-		# print(f'CONFIG DISPATCHER')
 		
 		datapath = ev.msg.datapath
 		ofproto = datapath.ofproto
 		parser = datapath.ofproto_parser
 
 		# Adding datapath to config
-		self.add_datapath(datapath)
-
-		# # T0: Sending ARP Requests to the controller
-		# match = parser.OFPMatch(
-		# 	arp_op = arp.ARP_REQUEST
-		# )
-		# actions = [
-		# 	parser.OFPActionOutput(
-		# 		ofproto.OFPP_CONTROLLER,
-		# 		ofproto.OFPCML_NO_BUFFER
-		# 	)
-		# ]
-		# inst = [
-		# 	parser.OFPInstructionActions(
-		# 		ofproto.OFPIT_APPLY_ACTIONS,
-		# 		actions
-		# 	)
-		# ]
-		# mod = parser.OFPFlowMod(
-		# 	datapath=datapath,
-		# 	table_id=0,
-		# 	priority=1,
-		# 	match = match,
-		# 	instructions=inst
-		# )
-		# datapath.send_msg(mod)
+		self.add_datapath(datapath)		
 	
 		#T0: Dropping multicast till topology discovery
 		match = parser.OFPMatch(
@@ -563,5 +481,4 @@ class WeightedLoadBalancer(app_manager.RyuApp):
 		datapath.send_msg(mod)
 
 		self._bgworker_f()
-		# print(f'END CONFIG DISPATCHER')
-   
+  
