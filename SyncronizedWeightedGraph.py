@@ -1,4 +1,3 @@
-
 import networkx as nx 
 from threading import RLock
 class SyncronizedWeightedGraph() :
