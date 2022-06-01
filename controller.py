@@ -2,36 +2,24 @@
 # Assuming topology discovery (ryu-manager --observe-links)
 # Assuming switch topology doesn't change over time
 
-# Table 0 is for rejecting multicast traffic from neighbor switches
+# Table 0 is for default/systems rules
 # Table - is for handling ARP (and similar) traffic
-# - ARP requests are handled by the controller
-# - Non-IP packets are discarded (?)
+# - LLDP traffic is directed to the controller (--observe-links)
+# - Broadcast packet are initially discarded, this rule is overwritten when the switches' neighbours are fully discovered
 # - Remaining traffic is directed to the next table
 
-# Table 1 is for handling defined routes
+# Table 1 is for rejecting multicast traffic from neighbour switches
+# - Each time, when the topology is refreshed, for each port connected to a switch it will create a new rule to discard incmoing multicast traffic
+# - Unmatched packets will be directed to the next table
+
+# Table 2 is for handling TCP connections. Unmatched traffic is directed to the controller
 # - Each time a new connection is detected the specific route for that is computed by the controller and pushed in this table
-# - Unmatched packets will be directed to the controller
 
-# - ARP Traffic is handled by the controller
-# - IPv6 Traffic is discarded switch-level
-# - IPv4 TCP traffic is load balanced through the network
-# - Remaining Ethernet traffic is delivered through the controller directly to the destination switch
-# - Unmatched traffic is discarded controller-level
-
-# IPv6 Traffic is discarded
 # TCP Connections are load balanced through the network
 # Ethernet Multicast from a switch is discarded switch level (rules are created when a switch is registered)
-# Ethernet Multicast is delivered to the controller to be broadcasted to all switches
+# Ethernet Multicast from a host is delivered to the controller to be broadcasted to all switches
 # Remaining traffic is logged and discarded
 
-# ---
-# Assuming topology discovery (ryu-manager --observe-links)
-
-# Table 0 is system-reserved (eg topology discovery)
-# Table 1 is for dropping multicast traffic originated from a controlled switch. Rules are added dynamically.
-# Table 2 is for handling TCP connections. Unmatched traffic is directed to the controller
- 
-# Due to a bug on tcp_src transformed in tp_src and tcp_dst transformed in udp_dst (present in hubrewrite1, too) we removed connection discrimination via port
 from tkinter.messagebox import NO
 from ryu.base import app_manager
 from ryu.controller import ofp_event
