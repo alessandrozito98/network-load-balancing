@@ -3,7 +3,7 @@
 
 ## Description
 
-a ryu program that send packets to the controller, and for each new connection, choose the lowest cost path, giving less weight to the unloaded connections. Finally upload a rule to the switch to send packets without using the controller.
+A ryu program that send packets to the controller, and for each new connection, choose the lowest cost path, giving less weight to the unloaded connections. Finally upload a rule to the switch to send packets without using the controller.
 
 ## Authors
 
