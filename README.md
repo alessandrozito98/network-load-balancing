@@ -3,7 +3,7 @@
 
 ## Description
 
-A ryu program that send packets to the controller, and for each new connection, choose the lowest cost path, giving less weight to the unloaded connections. Finally upload a rule to the switch to send packets without using the controller.
+A ryu program that send packets to the controller, and for each new connection, choose the lowest cost path, giving less weight to the unloaded connections. Finally it will upload a rule to the switch to send packets without using the controller.
 
 ## Authors
 
@@ -15,14 +15,7 @@ A ryu program that send packets to the controller, and for each new connection, 
 
 ## Installation
 
-Needs python3.
-
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install all the librabries.
-
-```bash
-pip3 install -r requirements.txt
-```
-
+Needs python3. See the Usage section to install all the dependencies.
 
 ## Configuration
 
