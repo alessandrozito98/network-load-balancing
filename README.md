@@ -1,5 +1,10 @@
 # Load Balancing
 
+
+## Description
+
+Simulations of different electoral laws with the same dataset to see if there would be any changes in the composition of the parliament.
+
 ## Authors
 
 887630 Fabio Mauri ([@cripty2001](https://github.com/cripty2001)) fabio6.mauri@mail.polimi.it
@@ -7,6 +12,16 @@
 937677 Luciano Oliva ([@OlivaLuciano](https://github.com/OlivaLuciano)) luciano1.oliva@mail.polimi.it
 
 890219 Alessandro Zito ([@alessandrozito98](https://github.com/alessandrozito98)) alessandro4.zito@mail.polimi.it
+
+## Installation
+
+Needs python3.
+
+Use the package manager [pip](https://pip.pypa.io/en/stable/) to install all the librabries.
+
+```bash
+pip3 install -r requirements.txt
+```
 
 <!---
 Description of the project can be found [here](https://github.com/alessandrozito98/Progetto_Reti_Logiche_2020/tree/master/Docs).
