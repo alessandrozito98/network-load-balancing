@@ -3,7 +3,7 @@
 
 ## Description
 
-Simulations of different electoral laws with the same dataset to see if there would be any changes in the composition of the parliament.
+a ryu program that send packets to the controller, and for each new connection, choose the lowest cost path, giving less weight to the unloaded connections. Finally upload a rule to the switch to send packets without using the controller.
 
 ## Authors
 
@@ -22,6 +22,15 @@ Use the package manager [pip](https://pip.pypa.io/en/stable/) to install all the
 ```bash
 pip3 install -r requirements.txt
 ```
+
+
+## Configuration
+
+### Usage
+
+```bash
+ryu-manager --observe-links controller.py flowmanager/flowmanager.py
+``` 
 
 <!---
 Description of the project can be found [here](https://github.com/alessandrozito98/Progetto_Reti_Logiche_2020/tree/master/Docs).
