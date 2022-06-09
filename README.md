@@ -7,7 +7,7 @@ A ryu program that send packets to the controller, and for each new connection, 
 
 ## Authors
 
-887630 Fabio Mauri ([@cripty2001](https://github.com/cripty2001)) fabio6.mauri@mail.polimi.it
+993215 Fabio Mauri ([@cripty2001](https://github.com/cripty2001)) fabio6.mauri@mail.polimi.it
 
 937677 Luciano Oliva ([@OlivaLuciano](https://github.com/OlivaLuciano)) luciano1.oliva@mail.polimi.it
 
@@ -28,7 +28,7 @@ ryu-manager --observe-links path/to/folder/controller.py path/to/folder/flowmana
 ``` 
 
 ## Credits
-([Giacomo Verticale](https://github.com/gverticale/))'s repo.
+[Giacomo Verticale](https://github.com/gverticale/)'s repo.
 
 
 This project was developed during the Software Defined Networking course at Polytechnic University of Milan. It has been evaluated 3/3 points more in the final mark of the exam.
