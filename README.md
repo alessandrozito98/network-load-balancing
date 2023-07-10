@@ -7,11 +7,11 @@ A ryu program that send packets to the controller, and for each new connection, 
 
 ## Authors
 
-993215 Fabio Mauri ([@cripty2001](https://github.com/cripty2001)) fabio6.mauri@mail.polimi.it
+Fabio Mauri ([@cripty2001](https://github.com/cripty2001)) fabio6.mauri@mail.polimi.it
 
-937677 Luciano Oliva ([@OlivaLuciano](https://github.com/OlivaLuciano)) luciano1.oliva@mail.polimi.it
+Luciano Oliva ([@OlivaLuciano](https://github.com/OlivaLuciano)) luciano1.oliva@mail.polimi.it
 
-890219 Alessandro Zito ([@alessandrozito98](https://github.com/alessandrozito98)) alessandro4.zito@mail.polimi.it
+Alessandro Zito ([@alessandrozito98](https://github.com/alessandrozito98)) alessandro4.zito@mail.polimi.it
 
 ## Installation
 
